@@ -9,7 +9,7 @@ import (
 
 type BookController interface {
 	FindAll() []model.Book
-	Save(ctx *gin.Context) model.Book
+	Save(ctx *gin.Context) (model.Book, error)
 }
 
 type controller struct {
@@ -17,7 +17,7 @@ type controller struct {
 }
 
 func New(service service.BookService) BookController {
-	return controller{
+	return &controller{
 		service: service,
 	}
 }
@@ -28,10 +28,14 @@ func (c *controller) FindAll() []model.Book {
 }
 
 // Save implements BookController.
-func (c *controller) Save(ctx *gin.Context) model.Book {
+func (c *controller) Save(ctx *gin.Context) (model.Book, error) {
 	var book model.Book
-	ctx.BindJSON(&book)
-	return c.service.Save(book)
+	err := ctx.ShouldBindJSON(&book)
+	if err != nil {
+		// err handle
+		return model.Book{}, err
+	}
+	return c.service.Save(book), nil
 }
 
 

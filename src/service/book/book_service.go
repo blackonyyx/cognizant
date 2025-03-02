@@ -3,14 +3,16 @@ package book
 import (
 	"errors"
 	"src/github.com/blackonyyx/cognizant/src/model"
+
+	"github.com/samber/lo"
 )
 
 type BookService interface {
 	Save(model.Book) (model.Book, error)
 	FindAll() []model.Book
 	AddBook(string) (int64, error)
-	ReturnBook(int64) (bool, error)
-	BorrowBook(int64) (bool, error)
+	ReturnBooks([]int64) (bool, error)
+	BorrowBooks([]int64) (bool, error)
 	GetContent(i int64) (model.BookContent, error)
 }
 
@@ -20,39 +22,59 @@ type bookService struct {
 }
 
 // BorrowBook implements BookService.
-func (service *bookService) BorrowBook(id int64) (bool, error) {
-	if _, ok := service.bookContents[id]; !ok{
-		return false, errors.New("book not found")
-	}
-	for _, i := range service.books {
-		if i.Id == id {
-			if (i.TotalStock > i.OnLoan) {
-				i.OnLoan++
-				return true, nil
-			} else {
-				return false, errors.New("book out of stock")
-			}
+func (service *bookService) BorrowBooks(id []int64) (bool, error) {
+	m := lo.SliceToMap(id, func(f int64) (int64, bool) {
+		return f, true
+	})
+	var list []*model.Book
+	for i, _ := range service.books {
+		if m[service.books[i].Id] {
+			list = append(list, &service.books[i])
 		}
 	}
-	return false, errors.New("book not found")
+	if len(id) != len(list) {
+		return false, errors.New("some book id does not exist in the library")
+	}
+
+	for _, ptr := range list {
+		if ((*ptr).TotalStock > (*ptr).OnLoan) {
+			(*ptr).OnLoan++
+		} else {
+			return false, errors.New("some book is out of stock")
+		}
+	}
+	return true, nil
 }
 
 // BorrowBook implements BookService.
-func (service *bookService) ReturnBook(id int64) (bool, error) {
-	if _, ok := service.bookContents[id]; !ok{
-		return false, errors.New("book not found")
-	}
-	for _, i := range service.books {
-		if i.Id == id {
-			if (i.OnLoan > 0) {
-				i.OnLoan--
-				return true, nil
-			} else {
-				return false, errors.New("book return cannot be 0")
-			}
+func (service *bookService) ReturnBooks(id []int64) (bool, error) {
+	m := lo.SliceToMap(id, func(f int64) (int64, bool) {
+		return f, true
+	})
+	var list []*model.Book
+	for i, _ := range service.books {
+		if m[service.books[i].Id] {
+			list = append(list, &service.books[i])
 		}
 	}
-	return false, errors.New("book not found")
+	if len(id) != len(list) {
+		return false, errors.New("some book id mentioned does not exist in the library")
+	}
+
+	for _, ptr := range list {
+		if ((*ptr).TotalStock > (*ptr).OnLoan) {
+			(*ptr).OnLoan++
+		} else {
+			return false, errors.New("some book is out of stock")
+		}
+		if ((*ptr).OnLoan > 0) {
+			(*ptr).OnLoan--
+			return true, nil
+		} else {
+			return false, errors.New("book return cannot be 0")
+		}
+	}
+	return true, nil
 }
 
 func New() BookService {

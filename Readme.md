@@ -19,7 +19,7 @@ Endpoints:
 
 
 "/borrow": All books in the borrow list must be validly available for borrowing. Otherwise the response will return a error.
-
+"/return": Similarly all books to be extended must be valid.
 Extra endpoints for flavour/ usability
 /read
 
@@ -59,3 +59,5 @@ Eg Adding book contents that are 100% the same.
 APIs below that are for use in managing /upkeeping the entries in the library will be assumed to have correct input, as the functionality emphasis is on the business logic relating to the application. The apis for this are detailed below. Basic functionality unit testing is implemented for this but regression testing will not.
 
 /save
+
+The server also regularly polls itself to update the status of loans.

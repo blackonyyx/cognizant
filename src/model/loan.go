@@ -15,5 +15,5 @@ type BookLoan struct {
 	BookId int64 `json:"book_id"`
 	StartDate int64 `json:"start_date"`
 	EndDate int64 `json:"end_date"`
-	Status bool `json:"status"` // status 1: on loan, 2: returned, 3: extended, 4: expired
+	Status int64 `json:"status"` // status 1: on loan, 2: returned, 3: extended, 4: expired
 }

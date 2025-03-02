@@ -2,9 +2,11 @@ package model
 
 type LoanReceipt struct {
 	Id int64 `json:"id"`
-	Name string `json:"name"` // user
-	Email string `json:"mail" "validate":"required,email"`
-	Loans []BookLoan `json:"loan_ids" `
+	Name string `json:"name"`
+	Email string `json:"mail" validate:"required,email"`
+	Loans []BookLoan `json:"loan_ids"`
+	StartDate int64 `json:"start_date"` // for convenience
+	EndDate int64 `json:"end_date"`
 }
 
 type BookLoan struct {

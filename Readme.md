@@ -12,10 +12,22 @@ Loans can be extended only once.
 User can retrieve their Overall Receipt status by Receipt Id or Email
 User can extend book due dates only BEFORE the return date of the book.
 
+Endpoints:
+
+"/add" : Books to be added to the library
+"/book" : search for a book using partial matching of: book id, author, title.
+
+
+"/borrow": All books in the borrow list must be validly available for borrowing. Otherwise the response will return a error.
+
+Extra endpoints for flavour/ usability
+/read
+
+
 1. UseGoastheprogramminglanguage.
 2. ImplementtheAPIwithasimplein-memorystorage(maporslice).Youwillneed
 to populate some books during the start-up of the program
-3. TheLibraryshouldhaveatleastthefollowingobjects.Youmayaddinanynew
+1. TheLibraryshouldhaveatleastthefollowingobjects.Youmayaddinanynew
 objects or fields as you deemed necessary to complete the program o BookDetail
 1. Title(string):Unique identifier for the book.
 2. AvailableCopies(int):No of available copies of the book that can be
@@ -31,13 +43,19 @@ of the loan.
 o POST /Extend to extend the loan of the book (extend 3 weeks from return
 date).
 o Post /Return to return the book.
-5. ReturnappropriateHTTPstatuscodesforsuccessanderrorscenarios.
-6. WriteatleastoneunittestforeachendpointusingGo’snet/http/httptestpackage.
+1. ReturnappropriateHTTPstatuscodesforsuccessanderrorscenarios.
+2. WriteatleastoneunittestforeachendpointusingGo’snet/http/httptestpackage.
 
 Relationships:
 A Book is a Entity
 A Receipt contains Loans that can be retrieved
 A Loan is a many to 1 relation to a Book
 
-Requirements:
+Testing Assumptions:
+Assumption of Testing is that the software will not be unreasonably adversarially used.
+Testing would cover reasonable cases of use by a normal user.
+Eg Adding book contents that are 100% the same.
 
+APIs below that are for use in managing /upkeeping the entries in the library will be assumed to have correct input, as the functionality emphasis is on the business logic relating to the application. The apis for this are detailed below. Basic functionality unit testing is implemented for this but regression testing will not.
+
+/save

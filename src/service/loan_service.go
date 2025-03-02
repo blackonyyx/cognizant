@@ -3,11 +3,12 @@ package service
 import (
 	"errors"
 	"src/github.com/blackonyyx/cognizant/src/model"
+	"src/github.com/blackonyyx/cognizant/src/reqbody"
 	"src/github.com/blackonyyx/cognizant/src/service/book"
 )
 
 type LoanService interface {
-	CreateLoan([]model.Book) (model.LoanReceipt, error)
+	CreateLoan(reqbody.LoanBooksRequest) (model.LoanReceipt, error)
 	UpdateStatus([]model.BookLoan) (model.LoanReceipt, error)
 	GetLoanReceipt(int64, string) (model.LoanReceipt, error)
 }
@@ -19,8 +20,8 @@ type loanService struct {
 }
 
 // CreateLoan implements LoanService.
-func (l *loanService) CreateLoan([]model.Book) (model.LoanReceipt, error) {
-	panic("unimplemented")
+func (l *loanService) CreateLoan(userData reqbody.LoanBooksRequest) (model.LoanReceipt, error) {
+	
 }
 
 // GetLoanReceipt implements LoanService.

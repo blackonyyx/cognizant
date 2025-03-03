@@ -18,7 +18,9 @@ import (
 
 var (
 	bookService book.BookService = book.New()
-	bookController controller.BookController = controller.New(bookService)
+	bookController controller.BookController = controller.NewBookController(bookService)
+	loanService service.LoanService = service.New(bookService)
+	loanController controller.LoanController = controller.NewLoanController(loanService)
 
 )
 
@@ -48,7 +50,7 @@ func main() {
 		ctx.JSON(200, books)
 	})
 
-	server.GET("/return/:id", func (ctx *gin.Context) { // /:key
+	server.GET("/read", func (ctx *gin.Context) { // /:key
 		read, err := bookController.GetContent(ctx)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -57,5 +59,40 @@ func main() {
 		}
 
 	})
-	server.Run(":8080")
+
+	server.GET("/search", func(ctx *gin.Context) {
+		books, err := bookController.GetBooks(ctx)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			ctx.JSON(200, books)
+		}
+	})
+
+	server.GET("/loan", func(ctx *gin.Context) {
+		resp, err := loanController.GetLoanReceipt(ctx)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			ctx.JSON(200, resp)
+		}
+	})
+
+	server.POST("/return", func(ctx *gin.Context) {
+		resp, err := loanController.ReturnBooks(ctx)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			ctx.JSON(200, resp)
+		}
+	})
+	server.POST("/extend", func(ctx *gin.Context) {
+		resp, err := loanController.ExtendLoan(ctx)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			ctx.JSON(200, resp)
+		}
+	})
+	server.Run(":3000")
 }

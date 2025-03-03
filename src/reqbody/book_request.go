@@ -9,3 +9,8 @@ type SaveBookRequest struct {
 	Content string `json:"content"`
 }
 
+type FindBookRequest struct {
+	BookId int64 `form:"id"`
+	Title string `form:"title"`
+	Author string `form:"author"`
+}

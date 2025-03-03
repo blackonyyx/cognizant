@@ -3,6 +3,8 @@ package book
 import (
 	"errors"
 	"src/github.com/blackonyyx/cognizant/src/model"
+	"src/github.com/blackonyyx/cognizant/src/reqbody"
+	"strings"
 
 	"github.com/samber/lo"
 )
@@ -14,11 +16,39 @@ type BookService interface {
 	ReturnBooks([]int64) (bool, error)
 	BorrowBooks([]int64) (bool, error)
 	GetContent(i int64) (model.BookContent, error)
+	FindBooks(reqbody.FindBookRequest) ([]model.Book, error)
 }
 
 type bookService struct {
 	books        []model.Book
 	bookContents map[int64]model.BookContent
+}
+
+// FindBook implements BookService.
+func (service *bookService) FindBooks(req reqbody.FindBookRequest) ([]model.Book, error) {
+	if _, exist := service.bookContents[req.BookId] ;req.BookId != 0 &&  exist {
+		book, found := lo.Find(service.books, func(b model.Book) bool {
+			return b.Id == req.BookId
+		})
+		if !found {
+			return nil,  errors.New("not found")
+		}
+		return []model.Book{book}, nil
+	}
+	books := lo.Filter(service.books, func(b model.Book, _ int) bool {
+		test := true
+		if len(req.Author) > 2 {
+			test = test && (strings.Contains(b.Author, req.Author))
+		}
+		if len(req.Title) > 2 {
+			test = test && (strings.Contains(b.Title, req.Title))
+		}
+		return test
+	})
+	if len(books) == 0 {
+		return books, errors.New("not found")
+	}
+	return books, nil
 }
 
 // BorrowBook implements BookService.
@@ -37,7 +67,7 @@ func (service *bookService) BorrowBooks(id []int64) (bool, error) {
 	}
 
 	for _, ptr := range list {
-		if ((*ptr).TotalStock > (*ptr).OnLoan) {
+		if (*ptr).TotalStock > (*ptr).OnLoan {
 			(*ptr).OnLoan++
 		} else {
 			return false, errors.New("some book is out of stock")
@@ -62,12 +92,12 @@ func (service *bookService) ReturnBooks(id []int64) (bool, error) {
 	}
 
 	for _, ptr := range list {
-		if ((*ptr).TotalStock > (*ptr).OnLoan) {
+		if (*ptr).TotalStock > (*ptr).OnLoan {
 			(*ptr).OnLoan++
 		} else {
 			return false, errors.New("some book is out of stock")
 		}
-		if ((*ptr).OnLoan > 0) {
+		if (*ptr).OnLoan > 0 {
 			(*ptr).OnLoan--
 			return true, nil
 		} else {

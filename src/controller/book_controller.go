@@ -8,36 +8,33 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 type BookController interface {
 	FindAll() []model.Book
 	Save(ctx *gin.Context) (model.Book, error)
 	GetContent(ctx *gin.Context) (model.BookContent, error)
+	GetBooks(ctx *gin.Context) ([]model.Book, error)
 }
 
-var validate *validator.Validate
-type controller struct {
+type bookController struct {
 	service book.BookService
 
 }
 
-func New(service book.BookService) BookController {
-	validate = validator.New()
-	validate.RegisterValidation("my_validator", nil)
-	return &controller{
+func NewBookController(service book.BookService) BookController {
+	return &bookController{
 		service: service,
 	}
 }
 
 // FindAll implements BookController.
-func (c *controller) FindAll() []model.Book {
+func (c *bookController) FindAll() []model.Book {
 	return c.service.FindAll()
 }
 
 // Save implements BookController.
-func (c *controller) Save(ctx *gin.Context) (model.Book, error) {
+func (c *bookController) Save(ctx *gin.Context) (model.Book, error) {
 	var req reqbody.SaveBookRequest
 	err := ctx.ShouldBindJSON(&req)
 	var book int64
@@ -66,11 +63,24 @@ func (c *controller) Save(ctx *gin.Context) (model.Book, error) {
 	return c.service.Save(bookStock)
 }
 
-func (c *controller) GetContent(ctx *gin.Context) (model.BookContent, error) {
-	id := ctx.Param("id")
+func (c *bookController) GetBooks(ctx *gin.Context) ([]model.Book, error) {
+	var req reqbody.FindBookRequest
+	err := ctx.ShouldBindQuery(&req)
+	if err != nil {
+		return nil, errors.New("invalid input")
+	}
+	books, err := c.service.FindBooks(req)
+	if err != nil {
+		return nil, err
+	}
+	return books, nil
+}
+
+func (c *bookController) GetContent(ctx *gin.Context) (model.BookContent, error) {
+	id := ctx.Query("id")
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
-		return model.BookContent{}, errors.New("Invalid Id input")
+		return model.BookContent{}, errors.New("invalid id input")
 	}
 	// todo add key to access borrowed book.
 	book, err := c.service.GetContent(int64(idInt))

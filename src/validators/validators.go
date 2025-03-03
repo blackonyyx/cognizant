@@ -1,3 +1,0 @@
-package validators
-
-// func Validate

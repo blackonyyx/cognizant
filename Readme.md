@@ -15,7 +15,7 @@ User can extend book due dates only BEFORE the return date of the book.
 Endpoints:
 
 "/add" : Books to be added to the library
-"/book" : search for a book using partial matching of: book id, author, title.
+"/book" : search for a book using partial matching of: author, title. or full matching of book id
 
 
 "/borrow": All books in the borrow list must be validly available for borrowing. Otherwise the response will return a error.
@@ -37,12 +37,11 @@ o LoanDetail
 2. LoanDate(date):Datewherethebookwasborrowed.
 3. Return Date(date):Datewherethebookshouldbereturned.
 4. Expose the following RESTful endpoints:
-o GET /Book to retrieve the detail and available copies of a book title.
-o POST /Borrow to borrow a book (loan period: 4 weeks) and display the detail
-of the loan.
-o POST /Extend to extend the loan of the book (extend 3 weeks from return
+o GET /Book to retrieve the detail and available copies of a book title. Done
+o POST /Borrow to borrow a book (loan period: 4 weeks) and display the detail of the loan. Done
+o POST /Extend to extend the loan of the book (extend 3 weeks from return Done
 date).
-o Post /Return to return the book.
+o Post /Return to return the book. Done
 1. ReturnappropriateHTTPstatuscodesforsuccessanderrorscenarios.
 2. WriteatleastoneunittestforeachendpointusingGo’snet/http/httptestpackage.
 

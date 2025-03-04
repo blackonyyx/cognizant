@@ -1,7 +1,7 @@
 package service
 
 import (
-	"errors"
+	"src/github.com/blackonyyx/cognizant/src/errormsg"
 	"src/github.com/blackonyyx/cognizant/src/model"
 	"src/github.com/blackonyyx/cognizant/src/reqbody"
 	"src/github.com/blackonyyx/cognizant/src/service/book"
@@ -19,7 +19,7 @@ type LoanService interface {
 	CreateLoan(reqbody.LoanBooksRequest) (model.LoanReceipt, error)
 	ExtendStatus(reqbody.ExtensionRequest) (model.LoanReceipt, error)
 	ReturnLoan(reqbody.ReturnBooksRequest) (model.LoanReceipt, error)
-	GetLoanReceipt(int64, string) (model.LoanReceipt, error)
+	GetLoanReceipt(int64) (model.LoanReceipt, error)
 }
 
 type loanService struct {
@@ -34,10 +34,10 @@ func (l *loanService) ReturnLoan(req reqbody.ReturnBooksRequest) (model.LoanRece
 	for _, loanId := range req.LoanIds {
 		loan, ok := l.Loans[int(loanId)]
 		if !ok {
-			return model.LoanReceipt{}, errors.New("loan id does not exist")
+			return model.LoanReceipt{}, errormsg.NOT_FOUND
 		}
 		if loan.Status == RETURNED {
-			return model.LoanReceipt{}, errors.New("loan cannot be returned again")
+			return model.LoanReceipt{}, errormsg.INVALID_STATUS
 		}
 		bookIds = append(bookIds, loan.BookId)
 
@@ -79,7 +79,7 @@ func (l *loanService) CreateLoan(userData reqbody.LoanBooksRequest) (model.LoanR
 			LoanId:    loanId,
 			BookId:    i,
 			StartDate: loanTime.Unix(),
-			EndDate:   loanTime.Unix(),
+			EndDate:   returnTime.Unix(),
 			Status:    int64(ON_LOAN),
 		}
 		loans = append(loans, loan)
@@ -99,15 +99,13 @@ func (l *loanService) CreateLoan(userData reqbody.LoanBooksRequest) (model.LoanR
 }
 
 // GetLoanReceipt implements LoanService.
-func (l *loanService) GetLoanReceipt(receiptId int64, email string) (model.LoanReceipt, error) {
+func (l *loanService) GetLoanReceipt(receiptId int64) (model.LoanReceipt, error) {
 	for _, i := range l.LoanReceipts {
 		if i.Id == receiptId {
 			return i, nil
-		} else if i.Email == email {
-			return i, nil
 		}
 	}
-	return model.LoanReceipt{}, errors.New("not found")
+	return model.LoanReceipt{}, errormsg.NOT_FOUND
 }
 
 // UpdateStatus implements LoanService.
@@ -116,14 +114,17 @@ func (l *loanService) ExtendStatus(req reqbody.ExtensionRequest) (model.LoanRece
 	for _, loanId := range req.LoanIds {
 		loan, ok := l.Loans[int(loanId)]
 		if !ok {
-			return model.LoanReceipt{}, errors.New("loan id does not exist")
+			return model.LoanReceipt{}, errormsg.NOT_FOUND
 		}
 		endDate := time.Unix(loan.EndDate, 0)
 		if now.After(endDate) {
-			return model.LoanReceipt{}, errors.New("loan cannot be extended as it is due")
+			return model.LoanReceipt{}, errormsg.INVALID_STATUS
 		}
-		if loan.Status != ON_LOAN {
-			return model.LoanReceipt{}, errors.New("loan cannot be extended as it is invalid")
+		if loan.Status == RETURNED {
+			return model.LoanReceipt{}, errormsg.INVALID_STATUS
+		}
+		if loan.Status == EXTENDED {
+			return model.LoanReceipt{}, errormsg.INVALID_STATUS
 		}
 	}
 	var loans []model.BookLoan

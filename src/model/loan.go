@@ -3,7 +3,7 @@ package model
 type LoanReceipt struct {
 	Id int64 `json:"id"`
 	Name string `json:"name"`
-	Email string `json:"mail" validate:"required,email"`
+	Email string `json:"email" validate:"required,email"`
 	Loans []BookLoan `json:"loan_ids"`
 	StartDate int64 `json:"start_date"` // for convenience
 	EndDate int64 `json:"end_date"`

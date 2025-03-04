@@ -50,13 +50,12 @@ func (l *loanController) ExtendLoan(ctx *gin.Context) (model.LoanReceipt, error)
 
 // GetLoanReceipt implements LoanController.
 func (l *loanController) GetLoanReceipt(ctx *gin.Context) (model.LoanReceipt, error) {
-	email := ctx.Query("email")
 	receiptId := ctx.Query("id")
 	idInt, err := strconv.Atoi(receiptId)
 	if err != nil {
 		return model.LoanReceipt{}, err
 	}
-	receipt, err := l.service.GetLoanReceipt(int64(idInt), email)
+	receipt, err := l.service.GetLoanReceipt(int64(idInt))
 	if err != nil {
 		return model.LoanReceipt{}, err
 	}

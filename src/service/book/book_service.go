@@ -1,7 +1,7 @@
 package book
 
 import (
-	"errors"
+	"src/github.com/blackonyyx/cognizant/src/errormsg"
 	"src/github.com/blackonyyx/cognizant/src/model"
 	"src/github.com/blackonyyx/cognizant/src/reqbody"
 	"strings"
@@ -10,9 +10,8 @@ import (
 )
 
 type BookService interface {
-	Save(model.Book) (model.Book, error)
+	SaveBook(reqbody.SaveBookRequest) (model.Book, error)
 	FindAll() []model.Book
-	AddBook(string) (int64, error)
 	ReturnBooks([]int64) (bool, error)
 	BorrowBooks([]int64) (bool, error)
 	GetContent(i int64) (model.BookContent, error)
@@ -24,16 +23,46 @@ type bookService struct {
 	bookContents map[int64]model.BookContent
 }
 
+// SaveBook implements BookService.
+func (service *bookService) SaveBook(req reqbody.SaveBookRequest) (model.Book, error) {
+	var book int64
+	if req.Id == 0 {
+		tmp, err := service.AddBook(req.Content)
+		book = tmp
+		if err != nil {
+			return model.Book{}, err
+		}
+	} else {
+		book = req.Id
+		if _, err := service.GetContent(book) ; err != nil {
+			return model.Book{}, err
+		}
+	}
+	var bookStock model.Book
+	bookStock.Id = book
+	bookStock.Title = req.Title
+	bookStock.Author = req.Author
+	bookStock.Description = req.Description
+	bookStock.TotalStock = req.TotalStock
+
+	return service.Save(bookStock)
+}
+
 // FindBook implements BookService.
 func (service *bookService) FindBooks(req reqbody.FindBookRequest) ([]model.Book, error) {
-	if _, exist := service.bookContents[req.BookId] ;req.BookId != 0 &&  exist {
+	if req.BookId != 0 && (req.Author != "" || req.Title != "") {
+		return nil, errormsg.INVALID_INPUT
+	}
+	if _, exist := service.bookContents[req.BookId]; req.BookId != 0 && exist {
 		book, found := lo.Find(service.books, func(b model.Book) bool {
 			return b.Id == req.BookId
 		})
 		if !found {
-			return nil,  errors.New("not found")
+			return nil, errormsg.NOT_FOUND
 		}
 		return []model.Book{book}, nil
+	} else if req.BookId != 0 && !exist {
+		return nil, errormsg.NOT_FOUND
 	}
 	books := lo.Filter(service.books, func(b model.Book, _ int) bool {
 		test := true
@@ -46,7 +75,7 @@ func (service *bookService) FindBooks(req reqbody.FindBookRequest) ([]model.Book
 		return test
 	})
 	if len(books) == 0 {
-		return books, errors.New("not found")
+		return books, errormsg.NOT_FOUND
 	}
 	return books, nil
 }
@@ -63,14 +92,14 @@ func (service *bookService) BorrowBooks(id []int64) (bool, error) {
 		}
 	}
 	if len(id) != len(list) {
-		return false, errors.New("some book id does not exist in the library")
+		return false, errormsg.NOT_FOUND
 	}
 
 	for _, ptr := range list {
 		if (*ptr).TotalStock > (*ptr).OnLoan {
 			(*ptr).OnLoan++
 		} else {
-			return false, errors.New("some book is out of stock")
+			return false, errormsg.OUT_OF_STOCK
 		}
 	}
 	return true, nil
@@ -88,20 +117,20 @@ func (service *bookService) ReturnBooks(id []int64) (bool, error) {
 		}
 	}
 	if len(id) != len(list) {
-		return false, errors.New("some book id mentioned does not exist in the library")
+		return false, errormsg.NOT_FOUND
 	}
 
 	for _, ptr := range list {
 		if (*ptr).TotalStock > (*ptr).OnLoan {
 			(*ptr).OnLoan++
 		} else {
-			return false, errors.New("some book is out of stock")
+			return false, errormsg.OUT_OF_STOCK
 		}
 		if (*ptr).OnLoan > 0 {
 			(*ptr).OnLoan--
 			return true, nil
 		} else {
-			return false, errors.New("book return cannot be 0")
+			return false, errormsg.STOCK_ERROR
 		}
 	}
 	return true, nil
@@ -135,5 +164,5 @@ func (service *bookService) GetContent(i int64) (model.BookContent, error) {
 	if i, ok := service.bookContents[i]; ok {
 		return i, nil
 	}
-	return model.BookContent{}, errors.New("not found")
+	return model.BookContent{}, errormsg.NOT_FOUND
 }

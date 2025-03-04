@@ -10,11 +10,4 @@
 [GIN-debug] GET    /loan                     --> src/github.com/blackonyyx/cognizant/src.SetupRouter.func6 (4 handlers)
 [GIN-debug] POST   /return                   --> src/github.com/blackonyyx/cognizant/src.SetupRouter.func7 (4 handlers)
 [GIN-debug] POST   /extend                   --> src/github.com/blackonyyx/cognizant/src.SetupRouter.func8 (4 handlers)
-[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
-Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
-[GIN-debug] Listening and serving HTTP on :3000
-::1 - [04 Mar 25 16:33 +08] POST /add 200 815.724µs 
-::1 - [04 Mar 25 16:33 +08] POST /add 200 154.412µs 
-::1 - [04 Mar 25 16:33 +08] POST /add 200 130.424µs 
-::1 - [04 Mar 25 16:33 +08] POST /borrow 200 330.341µs 
-::1 - [04 Mar 25 16:33 +08] POST /borrow 400 224.001µs 
+192.0.2.1 - [04 Mar 25 17:31 +08] POST /return 400 57.005µs 

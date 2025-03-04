@@ -128,15 +128,17 @@ func (l *loanService) ExtendStatus(req reqbody.ExtensionRequest) (model.LoanRece
 		}
 	}
 	var loans []model.BookLoan
+	receiptId := int64(len(l.LoanReceipts) + 1)
 	for _, id := range req.LoanIds {
 		tmp := l.Loans[int(id)]
 		tmp.EndDate = time.Unix(l.Loans[int(id)].EndDate, 0).AddDate(0, 0, 21).Unix()
+		tmp.ReceiptId = receiptId
 		tmp.Status = EXTENDED
 		loans = append(loans, tmp)
 		l.Loans[int(id)] = tmp
 	}
 	receipt := model.LoanReceipt{
-		Id:    int64(len(l.LoanReceipts) + 1),
+		Id:    receiptId,
 		Name:  req.Name,
 		Email: req.Email,
 		Loans: loans,

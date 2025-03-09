@@ -42,3 +42,8 @@ API below that are for use in managing /upkeeping the entries in the library wil
 Optional Tasks Completed:
 Implement logging for API requests and responses.
 Add Validation for missing/invalid input
+
+Addendeum:
+1. Standardise Error Format, Prompt, Internal Logs, Context Messages
+   1. Added additional endpoint as basic endpoint, under /ping
+2. 

@@ -1,7 +1,9 @@
 package service
 
 import (
+	"fmt"
 	"src/github.com/blackonyyx/cognizant/src/errormsg"
+	"src/github.com/blackonyyx/cognizant/src/log"
 	"src/github.com/blackonyyx/cognizant/src/model"
 	"src/github.com/blackonyyx/cognizant/src/reqbody"
 	"src/github.com/blackonyyx/cognizant/src/service/book"
@@ -34,16 +36,18 @@ func (l *loanService) ReturnLoan(req reqbody.ReturnBooksRequest) (model.LoanRece
 	for _, loanId := range req.LoanIds {
 		loan, ok := l.Loans[int(loanId)]
 		if !ok {
+			log.Warning(fmt.Sprintf("[ReturnLoan] Req: %#v, Book not found", req))
 			return model.LoanReceipt{}, errormsg.NOT_FOUND
 		}
 		if loan.Status == RETURNED {
+			log.Warning(fmt.Sprintf("[ReturnLoan] Req: %#v, Book has already been returned", req))
 			return model.LoanReceipt{}, errormsg.INVALID_STATUS
 		}
 		bookIds = append(bookIds, loan.BookId)
-
 	}
 	
 	if ok, err := l.BookService.ReturnBooks(bookIds); !ok {
+			log.Warning(fmt.Sprintf("[ReturnLoan] Req: %#v, Book has already been returned", req))
 		return model.LoanReceipt{}, err
 	}
 	var loans []model.BookLoan
@@ -60,12 +64,15 @@ func (l *loanService) ReturnLoan(req reqbody.ReturnBooksRequest) (model.LoanRece
 		Loans: loans,
 	}
 	l.LoanReceipts = append(l.LoanReceipts, receipt)
+	log.Warning(fmt.Sprintf("[ReturnLoan] req: %#v, receipt: %#v", req, receipt))
+
 	return receipt, nil
 }
 
 // CreateLoan implements LoanService.
 func (l *loanService) CreateLoan(userData reqbody.LoanBooksRequest) (model.LoanReceipt, error) {
 	if borrowed, err := l.BookService.BorrowBooks(userData.BookIds); !borrowed {
+		log.Warning(fmt.Sprintf("[CreateLoan] Req: %#v, Book could not be borrowed"))
 		return model.LoanReceipt{}, err
 	}
 	receiptId := len(l.LoanReceipts) + 1
@@ -94,6 +101,7 @@ func (l *loanService) CreateLoan(userData reqbody.LoanBooksRequest) (model.LoanR
 		EndDate:   returnTime.Unix(),
 	}
 	l.LoanReceipts = append(l.LoanReceipts, res)
+	log.Warning(fmt.Sprintf("[CreateLoan] req: %#v, receipt: %#v", userData, res))
 	// userData.BookIds
 	return res, nil
 }
@@ -105,6 +113,7 @@ func (l *loanService) GetLoanReceipt(receiptId int64) (model.LoanReceipt, error)
 			return i, nil
 		}
 	}
+	log.Warning("[GetContent] Loan Id not found")
 	return model.LoanReceipt{}, errormsg.NOT_FOUND
 }
 
@@ -114,16 +123,20 @@ func (l *loanService) ExtendStatus(req reqbody.ExtensionRequest) (model.LoanRece
 	for _, loanId := range req.LoanIds {
 		loan, ok := l.Loans[int(loanId)]
 		if !ok {
+			log.Warning(fmt.Sprintf("[ExtendStatus] Req: %#v, Book not found", req))
 			return model.LoanReceipt{}, errormsg.NOT_FOUND
 		}
 		endDate := time.Unix(loan.EndDate, 0)
 		if now.After(endDate) {
+			log.Warning(fmt.Sprintf("[ExtendStatus] Req: %#v, Book Already Due", req))
 			return model.LoanReceipt{}, errormsg.INVALID_STATUS
 		}
 		if loan.Status == RETURNED {
+			log.Warning(fmt.Sprintf("[ExtendStatus] Req: %#v, Book Already Returned", req))
 			return model.LoanReceipt{}, errormsg.INVALID_STATUS
 		}
 		if loan.Status == EXTENDED {
+			log.Warning(fmt.Sprintf("[ExtendStatus] Req: %#v, Book Already Extended", req))
 			return model.LoanReceipt{}, errormsg.INVALID_STATUS
 		}
 	}
@@ -144,6 +157,7 @@ func (l *loanService) ExtendStatus(req reqbody.ExtensionRequest) (model.LoanRece
 		Loans: loans,
 	}
 	l.LoanReceipts = append(l.LoanReceipts, receipt)
+	log.Warning(fmt.Sprintf("[ExtendStatus] req: %#v, receipt: %#v", req, receipt))
 	return receipt, nil
 }
 

@@ -137,7 +137,8 @@ func (service *bookService) ReturnBooks(id []int64) (bool, error) {
 		}
 	}
 	if len(id) != len(list) {
-		return false, errormsg.NOT_FOUND
+			log.Warning(fmt.Sprintf("[ReturnBooks]: %v, some id not found", id))
+			return false, errormsg.NOT_FOUND
 	}
 
 	for _, ptr := range list {
@@ -181,9 +182,9 @@ func (service *bookService) AddBook(bookContent string) (int64, error) {
 
 func (service *bookService) GetContent(i int64) (model.BookContent, error) {
 	if i, ok := service.bookContents[i]; ok {
-		log.Info(fmt.Sprintf("Book found, Contents: %#v", i))
+		log.Info(fmt.Sprintf("[GetContent] Book found, Contents: %#v", i))
 		return i, nil
 	}
-	log.Warning("Book Id not found")
+	log.Warning("[GetContent] Book Id not found")
 	return model.BookContent{}, errormsg.NOT_FOUND
 }

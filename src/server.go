@@ -1,8 +1,8 @@
 package src
 
 import (
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"src/github.com/blackonyyx/cognizant/src/controller"
@@ -10,7 +10,7 @@ import (
 	"src/github.com/blackonyyx/cognizant/src/middlewares"
 	"src/github.com/blackonyyx/cognizant/src/service"
 	"src/github.com/blackonyyx/cognizant/src/service/book"
-
+	mylog "src/github.com/blackonyyx/cognizant/src/log"
 	"github.com/gin-gonic/gin"
 	gindump "github.com/tpkeeper/gin-dump"
 )
@@ -37,21 +37,22 @@ func NewData() *Data {
 var DataLayer *Data
 
 
-func setupLogOutput() {
+func setupLogOutput() *os.File {
 	f, _ := os.Create("gin.log")
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
-
+	return f
 }
 func SetupRouter() *gin.Engine {
-	setupLogOutput()
+	f := setupLogOutput()
+	log.SetOutput(f)
 	server := gin.New()
 	DataLayer = NewData()
 	server.Use(gin.Recovery(), middlewares.Logger(), gindump.Dump())
 	// server.Use()
 	server.POST("/add" , func (ctx *gin.Context) {
-
 		res, err := DataLayer.BookController.Save(ctx)
 		if err != nil {
+			mylog.CtxError(ctx, errormsg.ErrorMsgToStatusCode((err)), "Error in Adding Book")
 			ctx.JSON(errormsg.ErrorMsgToStatusCode(err), gin.H{"error": err.Error()})
 		} else {
 			ctx.JSON(http.StatusOK, res.String())
@@ -59,13 +60,13 @@ func SetupRouter() *gin.Engine {
 	})
 	server.GET("/books", func (ctx *gin.Context) {
 		books := DataLayer.BookController.FindAll()
-		fmt.Println(books)
 		ctx.JSON(http.StatusOK, books)
 	})
 
 	server.GET("/read", func (ctx *gin.Context) { // /:key
 		read, err := DataLayer.BookController.GetContent(ctx)
 		if err != nil {
+			mylog.CtxError(ctx, errormsg.ErrorMsgToStatusCode((err)), "Error in Reading book")
 			ctx.JSON(errormsg.ErrorMsgToStatusCode(err), gin.H{"error": err.Error()})
 		} else {
 			ctx.JSON(http.StatusOK, read)
@@ -76,6 +77,7 @@ func SetupRouter() *gin.Engine {
 	server.GET("/search", func(ctx *gin.Context) {
 		books, err := DataLayer.BookController.GetBooks(ctx)
 		if err != nil {
+			mylog.CtxError(ctx, errormsg.ErrorMsgToStatusCode((err)), "Error in Reading book")
 			ctx.JSON(errormsg.ErrorMsgToStatusCode(err), gin.H{"error": err.Error()})
 		} else {
 			ctx.JSON(http.StatusOK, books)
@@ -85,6 +87,7 @@ func SetupRouter() *gin.Engine {
 	server.POST("/borrow", func(ctx *gin.Context) {
 		resp, err := DataLayer.LoanController.BorrowBooks(ctx)
 		if err != nil {
+			mylog.CtxError(ctx, errormsg.ErrorMsgToStatusCode((err)), "Error in borrowing book")
 			ctx.JSON(errormsg.ErrorMsgToStatusCode(err), gin.H{"error": err.Error()})
 		} else {
 			ctx.JSON(http.StatusOK, resp)
@@ -94,6 +97,7 @@ func SetupRouter() *gin.Engine {
 	server.GET("/loan", func(ctx *gin.Context) {
 		resp, err := DataLayer.LoanController.GetLoanReceipt(ctx)
 		if err != nil {
+			mylog.CtxError(ctx, errormsg.ErrorMsgToStatusCode((err)), "Error in retrieving receipt")
 			ctx.JSON(errormsg.ErrorMsgToStatusCode(err), gin.H{"error": err.Error()})
 		} else {
 			ctx.JSON(http.StatusOK, resp)
@@ -103,7 +107,8 @@ func SetupRouter() *gin.Engine {
 	server.POST("/return", func(ctx *gin.Context) {
 		resp, err := DataLayer.LoanController.ReturnBooks(ctx)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			mylog.CtxError(ctx, errormsg.ErrorMsgToStatusCode((err)), "Error in returning book")
+			ctx.JSON(errormsg.ErrorMsgToStatusCode(err), gin.H{"error": err.Error()})
 		} else {
 			ctx.JSON(http.StatusOK, resp)
 		}
@@ -111,7 +116,8 @@ func SetupRouter() *gin.Engine {
 	server.POST("/extend", func(ctx *gin.Context) {
 		resp, err := DataLayer.LoanController.ExtendLoan(ctx)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			mylog.CtxError(ctx, errormsg.ErrorMsgToStatusCode(err), "Error in extending book loan")
+			ctx.JSON(errormsg.ErrorMsgToStatusCode(err), gin.H{"error": err.Error()})
 		} else {
 			ctx.JSON(http.StatusOK, resp)
 		}

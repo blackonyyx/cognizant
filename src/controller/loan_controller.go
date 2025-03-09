@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"fmt"
+	"src/github.com/blackonyyx/cognizant/src/log"
 	"src/github.com/blackonyyx/cognizant/src/model"
 	"src/github.com/blackonyyx/cognizant/src/reqbody"
 	"src/github.com/blackonyyx/cognizant/src/service"
@@ -27,6 +29,7 @@ func (l *loanController) BorrowBooks(ctx *gin.Context) (model.LoanReceipt, error
 	if err != nil {
 		return model.LoanReceipt{}, err
 	}
+	log.CtxInfo(ctx, fmt.Sprintf("Request: [%#v]", req))
 	receipt , err := l.service.CreateLoan(req)
 	if err != nil {
 		return model.LoanReceipt{}, err
@@ -41,6 +44,7 @@ func (l *loanController) ExtendLoan(ctx *gin.Context) (model.LoanReceipt, error)
 	if err != nil {
 		return model.LoanReceipt{}, err
 	}
+	log.CtxInfo(ctx, fmt.Sprintf("Request: [%#v]", req))
 	receipt , err := l.service.ExtendStatus(req)
 	if err != nil {
 		return model.LoanReceipt{}, err
@@ -53,6 +57,7 @@ func (l *loanController) GetLoanReceipt(ctx *gin.Context) (model.LoanReceipt, er
 	receiptId := ctx.Query("id")
 	idInt, err := strconv.Atoi(receiptId)
 	if err != nil {
+		log.CtxWarning(ctx, fmt.Sprintf("Invalid Input", receiptId))
 		return model.LoanReceipt{}, err
 	}
 	receipt, err := l.service.GetLoanReceipt(int64(idInt))
@@ -69,6 +74,7 @@ func (l *loanController) ReturnBooks(ctx *gin.Context) (model.LoanReceipt, error
 	if err != nil {
 		return model.LoanReceipt{}, err
 	}
+	log.CtxInfo(ctx, fmt.Sprintf("Request: [%#v]", req))
 	receipt , err := l.service.ReturnLoan(req)
 	if err != nil {
 		return model.LoanReceipt{}, err

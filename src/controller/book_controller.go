@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"fmt"
 	"src/github.com/blackonyyx/cognizant/src/errormsg"
+	"src/github.com/blackonyyx/cognizant/src/log"
 	"src/github.com/blackonyyx/cognizant/src/model"
 	"src/github.com/blackonyyx/cognizant/src/reqbody"
 	"src/github.com/blackonyyx/cognizant/src/service/book"
@@ -30,6 +32,7 @@ func NewBookController(service book.BookService) BookController {
 
 // FindAll implements BookController.
 func (c *bookController) FindAll() []model.Book {
+	log.Info("/books")
 	return c.service.FindAll()
 }
 
@@ -40,6 +43,7 @@ func (c *bookController) Save(ctx *gin.Context) (model.Book, error) {
 	if err != nil {
 		return model.Book{}, errormsg.INVALID_INPUT
 	}
+	log.CtxInfo(ctx, fmt.Sprintf("Request: [%#v]", req))
 	book , err := c.service.SaveBook(req)
 	if err != nil {
 		return model.Book{}, err
@@ -53,6 +57,7 @@ func (c *bookController) GetBooks(ctx *gin.Context) ([]model.Book, error) {
 	if err != nil {
 		return nil, errormsg.INVALID_BINDING_INPUT
 	}
+	log.CtxInfo(ctx, fmt.Sprintf("Request: [%#v]", req))
 	books, err := c.service.FindBooks(req)
 	if err != nil {
 		return nil, err
@@ -64,9 +69,11 @@ func (c *bookController) GetContent(ctx *gin.Context) (model.BookContent, error)
 	id := ctx.Query("id")
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
+		log.CtxWarning(ctx, fmt.Sprint("Invalid Input", id))
 		return model.BookContent{}, errormsg.INVALID_INPUT
 	}
 	// todo add key to access borrowed book.
+	log.CtxInfo(ctx, fmt.Sprintf("ID: [%#v]", id))
 	book, err := c.service.GetContent(int64(idInt))
 	if err != nil {
 		return model.BookContent{}, err

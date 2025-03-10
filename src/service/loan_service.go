@@ -72,7 +72,7 @@ func (l *loanService) ReturnLoan(req reqbody.ReturnBooksRequest) (model.LoanRece
 // CreateLoan implements LoanService.
 func (l *loanService) CreateLoan(userData reqbody.LoanBooksRequest) (model.LoanReceipt, error) {
 	if borrowed, err := l.BookService.BorrowBooks(userData.BookIds); !borrowed {
-		log.Warning(fmt.Sprintf("[CreateLoan] Req: %#v, Book could not be borrowed"))
+		log.Warning(fmt.Sprintf("[CreateLoan] Req: %#v, Book could not be borrowed", userData))
 		return model.LoanReceipt{}, err
 	}
 	receiptId := len(l.LoanReceipts) + 1

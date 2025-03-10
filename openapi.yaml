@@ -1,0 +1,396 @@
+openapi: 3.0.3
+info:
+  version: 1.0.2
+  title: E-library
+  description: >-
+    Endpoints:
+    
+
+    "/search" : query params: id(full match), (partial matching): title, author
+    Search fields are a conjunction of partial matching.
+    
+    
+    "/book" : search for a book using partial matching of: author, title. or full matching of book id
+
+
+    "/borrow": All books in the borrow list must be validly available for borrowing (with valid stock). Otherwise the response will return a error.
+    
+    
+    "/return": Similarly all books to be extended must be valid.
+    
+    
+    "/extend": Extends books given email + loan ids
+    
+    
+    Extra endpoints for flavour/ usability:
+    
+    
+    "/add" : Books to be added to the library (for convenience of population. no testing)
+    
+    
+    "/read": Returns the contents of the book
+    
+    
+    "/loans": Returns the contents of the book
+externalDocs:
+  description: Swagger Documentation of RESTful API
+  url: http://swagger.io
+tags:
+  - name: book
+    description: Book related API services
+  - name: loan
+    description: BookLoan related api services
+paths:
+  /add:
+    summary: Add a book to the library
+    post:
+      summary: Adds a book to the library
+      description: ''
+      operationId: addBook
+      requestBody:
+        description: Add or Update a book to the library
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveBookRequest'
+      responses:
+        '200':
+          description: Success response
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Success:
+                  value: >-
+                    "[1, Alice In Wonderland, Lewis Carol,\n Alice In wonderland
+                    Is A girl \n Total: 1, On loan 0, Available: 1]"
+      tags:
+        - book
+  /books:
+    summary: Returns all books
+    get:
+      summary: Gets all books
+      description: prints out all added books.
+      operationId: allBooks
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Book'
+      tags:
+        - book
+  /read:
+    summary: Retrieves content of a book
+    get:
+      summary: Retrieves content of a book using book id
+      description: ''
+      operationId: readBook
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookContent'
+        '204':
+          description: No content found (no body)
+      tags:
+        - book
+  /search:
+    summary: Search for a book
+    get:
+      summary: Search for books
+      description: >-
+        Search for books via either a conjunction of matching substring title
+        and author or exact by id
+      operationId: searchBooks
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+        - in: query
+          name: title
+          schema:
+            type: string
+        - in: query
+          name: author
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Book'
+        '204':
+          description: No content found (no body)
+        '400':
+          description: Bad request (id is not a integer/id is filled but also title/author are filled)
+      tags:
+        - book
+  /borrow:
+    summary: Borrow a book
+    post:
+      summary: Borrow books
+      description: Borrow books using Book Id and email. All book ids must be valid and available for borrowing.
+      operationId: borrowBook
+      requestBody:
+        description: Create a new pet in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanBooksRequest'
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanReceipt'
+        '204':
+          description: No content found (no body)
+        '400':
+          description: Bad request or stock status invalid.
+      tags:
+        - loan
+  /return:
+    summary: Return a book
+    post:
+      summary: Return books
+      description: Return books using Loan Id and email. All loan Ids in the array must exist.
+      operationId: returnBook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReturnBooksRequest'
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanReceipt'
+        '204':
+          description: No content found (no body), ie some Loan Id does not exist
+        '400':
+          description: Bad request or stock status invalid.
+      tags:
+        - loan
+  /extend:
+    summary: Extend a book loan
+    post:
+      summary: Extend book loans
+      description: Extend books loan using loan Id and email (required). All must be valid, ie due date before Now(), loan id status must not be returned or previously extended already.
+      operationId: extendLoan
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtensionRequest'
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanReceipt'
+        '204':
+          description: No content found (no body)
+        '400':
+          description: Bad request or stock status invalid.
+      tags:
+        - loan
+  /loans:
+    summary: Get a loan receipt by id
+    get: 
+      summary: Get a loan receipt by the receipt id
+      operationId: getLoan
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanReceipt'
+        '204':
+          description: No content found (no body)
+        '400':
+          description: Bad request (id is not a integer)
+      tags:
+        - loan
+components:
+  schemas:
+    BookContent:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1213
+        content:
+          type: string
+          example: The quick brown fox jumps over the wall
+    Book:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1213
+        name:
+          type: string
+          example: Lewis Caroll
+      required:
+        - name
+    SaveBookRequest:
+      type: object
+      required:
+        - title
+        - author
+        - total_stock
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1213
+        title:
+          type: string
+          minimum: 4
+          example: Alice In Wonderland
+        author:
+          type: string
+          minimum: 4
+          example: Lewis Carol
+        description:
+          type: string
+          example: The quick brown fox jumps over the wall
+        total_stock:
+          type: integer
+          format: int64
+          example: 12
+        content:
+          type: string
+          example: The quick brown fox jumps over the wall
+    BookLoan:
+      type: object
+      properties:
+        receipt_id:
+          type: integer
+          format: int64
+          example: 1
+        loan_id:
+          type: integer
+          format: int64
+          example: 1
+        book_id:
+          type: integer
+          format: int64
+          example: 1
+        start_date:
+          type: integer
+          format: int64
+          example: 1741027052
+        end_date:
+          type: integer
+          format: int64
+          example: 1745260652
+        status:
+          type: integer
+          format: int64
+          example: 1
+          description: >-
+            Status of Bookloan - 1 = on_loan, 2 = returned, 3 = extended, 4 =
+            expired (unused)
+    LoanReceipt:
+      type: object
+      required:
+        - email
+        - receipt_id
+      properties:
+        receipt_id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Samuel
+        email:
+          type: string
+          example: johndoe@mail.com
+        loans:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookLoan'
+        start_date:
+          description: >-
+            Ease of access field for Borrow receipts, will not be filled for return/extend. In epoch time
+          type: integer
+          format: int64
+          example: 1741027052
+        end_date:
+          description: >-
+            Ease of access field for Borrow receipts, will not be filled for return/extend. In epoch time
+          type: integer
+          format: int64
+          example: 1745260652
+    LoanBooksRequest:
+      type: object
+      required:
+        - book_ids
+        - email
+      properties:
+        book_ids:
+          type: array
+          items:
+            type: integer
+        name:
+          type: string
+          example: Samuel
+        email:
+          type: string
+          example: johndoe@mail.com
+    ExtensionRequest:
+      type: object
+      required:
+        - loan_ids
+        - email
+      properties:
+        loan_ids:
+          type: array
+          items:
+            type: integer
+        name:
+          type: string
+          example: Samuel
+        email:
+          type: string
+          example: johndoe@mail.com
+    ReturnBooksRequest:
+      type: object
+      required:
+        - loan_ids
+        - email
+      properties:
+        loan_ids:
+          type: array
+          items:
+            type: integer
+        name:
+          type: string
+          example: Samuel
+        email:
+          type: string
+          example: johndoe@mail.com

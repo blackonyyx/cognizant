@@ -45,5 +45,30 @@ Add Validation for missing/invalid input
 
 Addendeum:
 1. Standardise Error Format, Prompt, Internal Logs, Context Messages
-   1. Added additional endpoint as basic endpoint, under /ping
-2. 
+2. Swagger documentation added in openapi.yaml
+3. Remove unused.
+4. Added postman collection.
+
+
+Quickstart:
+```
+go run main.go
+```
+Unit Testing:
+```
+go run 
+```
+
+
+Access the endpoints via POSTMAN collection.
+
+```
+./Library.postman_collection.json
+```
+
+Run:
+1. Add 1
+2. Add 2
+3. Add 3
+
+Acceptance testing of other api endpoints can begin.

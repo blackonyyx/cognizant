@@ -124,12 +124,10 @@ func TestExtension(t *testing.T) {
 		}
 		req := httptest.NewRequest(http.MethodPost, tests.DOMAIN + tests.EXTEND, &b)
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
-		tmp := tests.CreateErrorResp(errormsg.NOT_FOUND)
-		expected, _ := json.Marshal(tmp)
+	
 
 		server.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code, "Loan Id not found")
-		assert.Equal(t, string(expected), w.Body.String())
+		assert.Equal(t, http.StatusNoContent, w.Code, "Loan Id not found")
 	})
 }
 
@@ -162,11 +160,8 @@ func TestReturnBook(t *testing.T) {
 		}
 		req := httptest.NewRequest(http.MethodPost, tests.DOMAIN + tests.RETURN, &b)
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
-		tmp := tests.CreateErrorResp(errormsg.NOT_FOUND)
-		expected, _ := json.Marshal(tmp)
 
 		server.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code, "Loan Id not found")
-		assert.Equal(t, string(expected), w.Body.String())
+		assert.Equal(t, http.StatusNoContent, w.Code, "Loan Id not found")
 	})
 }

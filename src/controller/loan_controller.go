@@ -57,7 +57,7 @@ func (l *loanController) GetLoanReceipt(ctx *gin.Context) (model.LoanReceipt, er
 	receiptId := ctx.Query("id")
 	idInt, err := strconv.Atoi(receiptId)
 	if err != nil {
-		log.CtxWarning(ctx, fmt.Sprintf("Invalid Input", receiptId))
+		log.CtxWarning(ctx, fmt.Sprint("Invalid Input", receiptId))
 		return model.LoanReceipt{}, err
 	}
 	receipt, err := l.service.GetLoanReceipt(int64(idInt))

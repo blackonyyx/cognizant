@@ -43,7 +43,7 @@ Optional Tasks Completed:
 Implement logging for API requests and responses.
 Add Validation for missing/invalid input
 
-Addendeum:
+## Addendeum:
 1. Standardise Error Format, Prompt, Internal Logs, Context Messages
 2. Swagger documentation added in openapi.yaml
 3. Remove unused.
